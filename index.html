@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Тоолуурын Алдаа - Гар утас</title>
+  <style>
+    body{font-family:system-ui, sans-serif;background:#0f172a;color:#e5e7eb;margin:0;padding:0}
+    .container{width:95%;max-width:400px;margin:10px auto;padding:10px}
+    .card{background:#111827;padding:20px;border-radius:20px;box-shadow:0 4px 20px rgba(0,0,0,0.5);margin-bottom:15px}
+    h1{margin-top:0;font-size:1.5rem;text-align:center}
+    .row{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+    label{display:block;font-size:1rem;color:#94a3b8;margin-bottom:4px}
+    input{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0b1220;color:#fff;font-size:1rem;text-align:center}
+    .three-inputs{display:flex;gap:5px}
+    .three-inputs input{flex:1; text-align:center}
+    button{padding:10px;border:none;border-radius:12px;cursor:pointer;font-weight:600;font-size:1rem;flex:1}
+    .primary{background:#22d3ee;color:#000}
+    .danger{background:#1f2937;border:1px dashed #475569;color:#f87171}
+    .result{margin-top:16px;padding:16px;border-radius:15px;background:#07111b;border:1px solid #0b1f33;font-size:1rem;text-align:center;word-break:break-word}
+    .top-btn{display:flex;justify-content:center;margin-bottom:15px}
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="top-btn">
+    <button class="primary" id="switch_btn">380V Сонголт</button>
+  </div>
+  <div class="card">
+    <h1 id="title">220V Тоолуурын Алдаа</h1>
+    <p id="desc" style="text-align:center;">Утга оруулах: I, imp, t</p>
+    <div class="row" id="inputs">
+      <div style="flex:1 1 100%" id="I_container">
+        <label for="I_main">I</label>
+        <input id="I_main" type="number" placeholder="I утга">
+        <div class="three-inputs">
+          <input id="I1" type="number" placeholder="I1" style="display:none">
+          <input id="I2" type="number" placeholder="I2" style="display:none">
+          <input id="I3" type="number" placeholder="I3" style="display:none">
+        </div>
+      </div>
+      <div style="flex:1 1 100%; display:none" id="V_div"></div>
+      <div style="flex:1 1 100%" id="n_div"><label for="n_main">Ktt</label><input id="n_main" type="number" value="1"></div>
+      <div style="flex:1 1 100%"><label for="imp_main">imp</label><input id="imp_main" type="number"></div>
+      <div style="flex:1 1 100%"><label for="t_main">t</label><input id="t_main" type="number"></div>
+    </div>
+    <div class="row">
+      <button class="primary" id="solve_main">Бодох</button>
+      <button class="danger" id="reset_main">Цэвэрлэх</button>
+    </div>
+    <div class="result" id="out_main"></div>
+  </div>
+</div>
+<script>
+let is220=true;
+
+function solve220(I,imp,t){
+  const P1=(0.22*I).toFixed(6);
+  const P2=(imp!==0 && t!==0) ? (3600/(imp*t)).toFixed(6) : 'imp эсвэл t 0 тул тооцоолох боломжгүй';
+  return `Pачаалал = ${P1}<br>Pтоол = ${P2}`;
+}
+
+function solve380(I_vals,Ktt,imp,t){
+  const I_nums = I_vals.map(Number);
+  const I_avg = I_nums.reduce((a,b)=>a+b,0)/I_nums.length;
+  const P1=(0.4*1.73*I_avg).toFixed(6);
+  const P2=(imp!==0 && t!==0) ? (3600*Ktt/(imp*t)).toFixed(6) : 'imp эсвэл t 0 тул тооцоолох боломжгүй';
+  return `Pачаалал = ${P1}<br>Pтоол = ${P2}`;
+}
+
+const title=document.getElementById('title');
+const desc=document.getElementById('desc');
+const n_div=document.getElementById('n_div');
+const solveBtn=document.getElementById('solve_main');
+const resetBtn=document.getElementById('reset_main');
+const switchBtn=document.getElementById('switch_btn');
+const I_inputs=[document.getElementById('I1'),document.getElementById('I2'),document.getElementById('I3')];
+const I_main_input=document.getElementById('I_main');
+
+solveBtn.onclick=()=>{
+  const n=Number(document.getElementById('n_main').value);
+  const imp=Number(document.getElementById('imp_main').value);
+  const t=Number(document.getElementById('t_main').value);
+  if(is220){
+    const I=Number(I_main_input.value);
+    document.getElementById('out_main').innerHTML=solve220(I,imp,t);
+  } else {
+    const I_vals = I_inputs.map(inp => Number(inp.value));
+    document.getElementById('out_main').innerHTML=solve380(I_vals,n,imp,t);
+  }
+};
+
+resetBtn.onclick=()=>{
+  ['I_main','n_main','imp_main','t_main','I1','I2','I3'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('out_main').innerHTML='';
+};
+
+switchBtn.onclick=()=>{
+  if(is220){
+    is220=false;
+    title.textContent='380V Тоолуурын Алдаа';
+    desc.textContent='Утга оруулах: I1, I2, I3, Ktt, imp, t';
+    n_div.style.display='block';
+    I_inputs.forEach(inp=>inp.style.display='block');
+    I_main_input.style.display='none';
+    switchBtn.textContent='220V Сонголт';
+  } else {
+    is220=true;
+    title.textContent='220V Тоолуурын Алдаа';
+    desc.textContent='Утга оруулах: I, imp, t';
+    n_div.style.display='none';
+    I_inputs.forEach(inp=>inp.style.display='none');
+    I_main_input.style.display='block';
+    switchBtn.textContent='380V Сонголт';
+  }
+};
+
+I_inputs.forEach(inp=>inp.style.display='none');
+</script>
+</body>
+</html>
